@@ -1,0 +1,20 @@
+{
+	"geode": "4.3.1",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "vinsterplays.toggle_transparency",
+	"name": "Toggle Transparent Layers",
+	"version": "v1.0.0",
+	"developer": "Vinsterplays",
+	"description": "",
+	"dependencies": {
+            "cvolton.level-id-api": {
+            "version": ">=1.0.0",
+            "importance": "required"
+        }
+	}
+}
