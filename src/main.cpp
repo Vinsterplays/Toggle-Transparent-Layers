@@ -50,8 +50,7 @@ class $modify(LayerButtonUI, EditorUI)
 		auto fields = m_fields.self();
 		int currentLayer = m_editorLayer->m_currentLayer;
 
-		fields->layerToggle->setVisible(m_editorLayer->m_playbackMode != PlaybackMode::Playing && currentLayer != -1);
-		bool isPlaying = m_editorLayer->m_playbackMode == PlaybackMode::Playing;
+		fields->layerToggle->setVisible(currentLayer != -1);
 
 		for (auto *obj : CCArrayExt<GameObject *>(this->m_editorLayer->m_objects))
 		{
@@ -76,7 +75,7 @@ class $modify(LayerButtonUI, EditorUI)
 			bool layer1Hidden = fields->hiddenLayers.contains(l1);
 			bool layer2Hidden = (l2 != 0) ? fields->hiddenLayers.contains(l2) : true;
 
-			if (layer1Hidden && layer2Hidden && !isPlaying)
+			if (layer1Hidden && layer2Hidden)
 			{
 				// Only set to false if not already hidden
 				if (obj->isVisible())
@@ -110,6 +109,54 @@ class $modify(LayerButtonUI, EditorUI)
 			if (m_fields->layerToggle)
 				m_fields->layerToggle->toggle(false);
 		}
+	}
+	void showUI(bool show)
+	{
+		auto fields = m_fields.self();
+		fields->layerToggle->setVisible(show);
+		EditorUI::showUI(show);
+	}
+	void onPlaytest(CCObject *sender)
+	{
+		auto fields = m_fields.self();
+		for (auto *obj : CCArrayExt<GameObject *>(this->m_editorLayer->m_objects))
+		{
+			if (!obj)
+				continue;
+
+			int l1 = obj->m_editorLayer;
+			int l2 = obj->m_editorLayer2;
+
+			bool layer1Hidden = fields->hiddenLayers.contains(l1);
+			bool layer2Hidden = (l2 != 0) ? fields->hiddenLayers.contains(l2) : true;
+
+			if (layer1Hidden && layer2Hidden)
+			{
+				obj->setVisible(true);
+			}
+		}
+		EditorUI::onPlaytest(sender);
+	}
+	void onStopPlaytest(CCObject *sender)
+	{
+		auto fields = m_fields.self();
+		for (auto *obj : CCArrayExt<GameObject *>(this->m_editorLayer->m_objects))
+		{
+			if (!obj)
+				continue;
+
+			int l1 = obj->m_editorLayer;
+			int l2 = obj->m_editorLayer2;
+
+			bool layer1Hidden = fields->hiddenLayers.contains(l1);
+			bool layer2Hidden = (l2 != 0) ? fields->hiddenLayers.contains(l2) : true;
+
+			if (layer1Hidden && layer2Hidden)
+			{
+				obj->setVisible(false);
+			}
+		}
+		EditorUI::onStopPlaytest(sender);
 	}
 	struct Fields
 	{
