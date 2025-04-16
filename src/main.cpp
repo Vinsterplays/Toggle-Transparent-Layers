@@ -12,18 +12,19 @@ class $modify(LayerButtonUI, EditorUI)
 	{
 		if (!EditorUI::init(p0))
 			return false;
-		m_fields->levelId = EditorIDs::getID(p0->m_level);
-		m_fields->loadMap();
+		auto fields = m_fields.self();
+		fields->levelId = EditorIDs::getID(p0->m_level);
+		fields->loadMap();
 		if (auto layerMenu = this->getChildByID("layer-menu"))
 		{
 			auto layerHideSpr = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
 			auto layerShowSpr = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
 			m_fields->layerToggle = CCMenuItemToggler::create(
 				layerHideSpr, layerShowSpr, this, menu_selector(LayerButtonUI::onToggle));
-			m_fields->layerToggle->setID("hide-layer-toggle"_spr);
-			m_fields->layerToggle->m_notClickable = true;
-			m_fields->layerToggle->toggle(true);
-			layerMenu->addChild(m_fields->layerToggle);
+			fields->layerToggle->setID("hide-layer-toggle"_spr);
+			fields->layerToggle->m_notClickable = true;
+			fields->layerToggle->toggle(true);
+			layerMenu->addChild(fields->layerToggle);
 			layerMenu->updateLayout();
 			updateLayer(p0->m_currentLayer);
 			schedule(schedule_selector(LayerButtonUI::checkLayer), 0);
@@ -139,23 +140,7 @@ class $modify(LayerButtonUI, EditorUI)
 	}
 	void onStopPlaytest(CCObject *sender)
 	{
-		auto fields = m_fields.self();
-		for (auto *obj : CCArrayExt<GameObject *>(this->m_editorLayer->m_objects))
-		{
-			if (!obj)
-				continue;
-
-			int l1 = obj->m_editorLayer;
-			int l2 = obj->m_editorLayer2;
-
-			bool layer1Hidden = fields->hiddenLayers.contains(l1);
-			bool layer2Hidden = (l2 != 0) ? fields->hiddenLayers.contains(l2) : true;
-
-			if (layer1Hidden && layer2Hidden)
-			{
-				obj->setVisible(false);
-			}
-		}
+		updateLayer(m_editorLayer->m_currentLayer);
 		EditorUI::onStopPlaytest(sender);
 	}
 	struct Fields
