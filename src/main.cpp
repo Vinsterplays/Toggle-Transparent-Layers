@@ -2,13 +2,10 @@
 
 using namespace geode::prelude;
 
-#include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/modify/GameObject.hpp>
 #include <Geode/modify/EditorUI.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
-#include <Geode/modify/LevelBrowserLayer.hpp>
 class $modify(LayerButtonUI, EditorUI)
 {
 	bool init(LevelEditorLayer *p0)

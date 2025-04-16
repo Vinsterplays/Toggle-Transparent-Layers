@@ -2,7 +2,8 @@
 	"geode": "4.3.1",
 	"gd": {
 		"win": "2.2074",
-		"android": "2.2074"
+		"android": "2.2074",
+		"mac": "2.2074"
 	},
 	"id": "vinsterplays.toggle_transparency",
 	"name": "Toggle Transparent Layers",
@@ -11,7 +12,7 @@
 	"description": "Toggle the transparent layers in the editor!",
 	"dependencies": {
 		"geode.node-ids": {
-			"version": "1.13.0",
+			"version": ">=1.17.0",
 			"importance": "required"
 		},
         "cvolton.level-id-api": {
