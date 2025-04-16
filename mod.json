@@ -6,7 +6,7 @@
 	},
 	"id": "vinsterplays.toggle_transparency",
 	"name": "Toggle Transparent Layers",
-	"version": "v1.0.1",
+	"version": "v1.0.2",
 	"developer": "Vinsterplays",
 	"description": "Toggle the transparent layers in the editor!",
 	"dependencies": {
