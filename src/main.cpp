@@ -1,29 +1,7 @@
-/**
- * Include the Geode headers.
- */
 #include <Geode/Geode.hpp>
 
-/**
- * Brings cocos2d and all Geode namespaces to the current scope.
- */
 using namespace geode::prelude;
 
-/**
- * `$modify` lets you extend and modify GD's classes.
- * To hook a function in Geode, simply $modify the class
- * and write a new function definition with the signature of
- * the function you want to hook.
- *
- * Here we use the overloaded `$modify` macro to set our own class name,
- * so that we can use it for button callbacks.
- *
- * Notice the header being included, you *must* include the header for
- * the class you are modifying, or you will get a compile error.
- *
- * Another way you could do this is like this:
- *
- * struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {};
- */
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/GameObject.hpp>
@@ -50,9 +28,13 @@ class $modify(LayerButtonUI, EditorUI)
 			m_fields->layerToggle->toggle(true);
 			layerMenu->addChild(m_fields->layerToggle);
 			layerMenu->updateLayout();
+			updateLayer(p0->m_currentLayer);
+			schedule(schedule_selector(LayerButtonUI::checkLayer), 0);
 		}
-		updateLayer(p0->m_currentLayer);
-		schedule(schedule_selector(LayerButtonUI::checkLayer), 0);
+		else
+		{
+			log::warn("LayerButtonUI: layer-menu not found!");
+		}
 		return true;
 	}
 	void updateLayer(int layer)
@@ -60,11 +42,13 @@ class $modify(LayerButtonUI, EditorUI)
 		auto it = m_fields->hiddenLayers.find(layer);
 		if (it != m_fields->hiddenLayers.end())
 		{
-			m_fields->layerToggle->toggle(false);
+			if (m_fields->layerToggle)
+				m_fields->layerToggle->toggle(false);
 		}
 		else
 		{
-			m_fields->layerToggle->toggle(true);
+			if (m_fields->layerToggle)
+				m_fields->layerToggle->toggle(true);
 		}
 		auto fields = m_fields.self();
 		int currentLayer = m_editorLayer->m_currentLayer;
@@ -119,13 +103,15 @@ class $modify(LayerButtonUI, EditorUI)
 		{
 			// Toggling ON (make visible)
 			m_fields->hiddenLayers.erase(layer);
-			m_fields->layerToggle->toggle(true);
+			if (m_fields->layerToggle)
+				m_fields->layerToggle->toggle(true);
 		}
 		else
 		{
 			// Toggling OFF (make hidden)
 			m_fields->hiddenLayers[layer] = true;
-			m_fields->layerToggle->toggle(false);
+			if (m_fields->layerToggle)
+				m_fields->layerToggle->toggle(false);
 		}
 	}
 	struct Fields
