@@ -6,6 +6,7 @@ using namespace geode::prelude;
 #include <Geode/modify/EditorUI.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
+#include <Geode/modify/GameObject.hpp>
 class $modify(LayerButtonUI, EditorUI)
 {
 	bool init(LevelEditorLayer *p0)
@@ -29,26 +30,24 @@ class $modify(LayerButtonUI, EditorUI)
 			updateLayer(p0->m_currentLayer);
 			schedule(schedule_selector(LayerButtonUI::checkLayer), 0);
 		}
-		else
-		{
-			log::warn("LayerButtonUI: layer-menu not found!");
-		}
 		return true;
 	}
 	void updateLayer(int layer)
 	{
-		auto it = m_fields->hiddenLayers.find(layer);
-		if (it != m_fields->hiddenLayers.end())
-		{
-			if (m_fields->layerToggle)
-				m_fields->layerToggle->toggle(false);
-		}
-		else
-		{
-			if (m_fields->layerToggle)
-				m_fields->layerToggle->toggle(true);
-		}
 		auto fields = m_fields.self();
+		auto it = fields->hiddenLayers.find(layer);
+		if (fields->layerToggle)
+		{
+			if (it != fields->hiddenLayers.end())
+			{
+				fields->layerToggle->toggle(false);
+			}
+			else
+			{
+
+				fields->layerToggle->toggle(true);
+			}
+		}
 		int currentLayer = m_editorLayer->m_currentLayer;
 
 		fields->layerToggle->setVisible(currentLayer != -1);
@@ -61,7 +60,6 @@ class $modify(LayerButtonUI, EditorUI)
 			int l1 = obj->m_editorLayer;
 			int l2 = obj->m_editorLayer2;
 
-			// Quick check if we can skip (object is always visible)
 			if (currentLayer == -1 ||
 				l1 == currentLayer ||
 				(l2 == currentLayer && l2 != 0) ||
@@ -72,13 +70,11 @@ class $modify(LayerButtonUI, EditorUI)
 				continue;
 			}
 
-			// If both layers are hidden
 			bool layer1Hidden = fields->hiddenLayers.contains(l1);
 			bool layer2Hidden = (l2 != 0) ? fields->hiddenLayers.contains(l2) : true;
 
 			if (layer1Hidden && layer2Hidden)
 			{
-				// Only set to false if not already hidden
 				if (obj->isVisible())
 					obj->setVisible(false);
 			}
@@ -95,32 +91,39 @@ class $modify(LayerButtonUI, EditorUI)
 	void onToggle(CCObject *)
 	{
 		int layer = m_editorLayer->m_currentLayer;
-
-		if (m_fields->hiddenLayers.contains(layer))
+		auto fields = m_fields.self();
+		if (m_fields->layerToggle)
 		{
-			// Toggling ON (make visible)
-			m_fields->hiddenLayers.erase(layer);
-			if (m_fields->layerToggle)
-				m_fields->layerToggle->toggle(true);
-		}
-		else
-		{
-			// Toggling OFF (make hidden)
-			m_fields->hiddenLayers[layer] = true;
-			if (m_fields->layerToggle)
-				m_fields->layerToggle->toggle(false);
+			if (fields->hiddenLayers.contains(layer))
+			{
+				fields->hiddenLayers.erase(layer);
+				fields->layerToggle->toggle(true);
+			}
+			else
+			{
+				fields->hiddenLayers[layer] = true;
+				fields->layerToggle->toggle(false);
+			}
 		}
 	}
 	void showUI(bool show)
 	{
 		auto fields = m_fields.self();
-		fields->layerToggle->setVisible(show);
+		if (m_editorLayer->m_currentLayer != -1)
+		{
+			fields->layerToggle->setVisible(show);
+		}
+		else
+		{
+			fields->layerToggle->setVisible(false);
+		}
 		EditorUI::showUI(show);
 	}
 	void onPlaytest(CCObject *sender)
 	{
+		EditorUI::onPlaytest(sender);
 		auto fields = m_fields.self();
-		for (auto *obj : CCArrayExt<GameObject *>(this->m_editorLayer->m_objects))
+		for (auto *obj : CCArrayExt<GameObject *>(m_editorLayer->m_objects))
 		{
 			if (!obj)
 				continue;
@@ -136,7 +139,6 @@ class $modify(LayerButtonUI, EditorUI)
 				obj->setVisible(true);
 			}
 		}
-		EditorUI::onPlaytest(sender);
 	}
 	void onStopPlaytest(CCObject *sender)
 	{
@@ -173,4 +175,39 @@ class $modify(LayerButtonUI, EditorUI)
 			Mod::get()->setSavedValue(std::to_string(levelId), jsonVal.dump(matjson::NO_INDENTATION));
 		}
 	};
+};
+class $modify(GameObject)
+{
+	void setVisible(bool p0)
+	{
+		bool visible = this->isVisible();
+		GameObject::setVisible(p0);
+		if (visible == false && p0 == true)
+		{
+			if (auto ui = EditorUI::get())
+			{
+				if (auto myUI = static_cast<LayerButtonUI *>(ui))
+				{
+					auto fields = myUI->m_fields.self();
+					if (ui->m_editorLayer->m_currentLayer == -1 ||
+						this->m_objectID == 0 ||
+						ui->m_editorLayer->m_playbackMode == PlaybackMode::Playing ||
+						this->m_editorLayer == ui->m_editorLayer->m_currentLayer ||
+						(this->m_editorLayer2 == ui->m_editorLayer->m_currentLayer && this->m_editorLayer2 != 0) ||
+						this->m_isSelected)
+					{
+						return;
+					}
+					bool layer1Hidden = fields->hiddenLayers.contains(this->m_editorLayer);
+					bool layer2Hidden = (this->m_editorLayer2 != 0) ? fields->hiddenLayers.contains(this->m_editorLayer2) : true;
+
+					if (layer1Hidden && layer2Hidden)
+					{
+						this->setVisible(false);
+						return;
+					}
+				}
+			}
+		}
+	}
 };
